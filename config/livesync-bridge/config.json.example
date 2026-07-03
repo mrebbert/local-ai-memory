@@ -1,0 +1,24 @@
+{
+  "_comment": "livesync-bridge config. Copy to config.json and fill in real values. Mounted at /app/dat/config.json. Both passphrases are the SAME E2EE passphrase you set in the LiveSync plugin (obfuscatePassphrase is required because Path Obfuscation is enabled together with E2EE).",
+  "peers": [
+    {
+      "type": "couchdb",
+      "name": "couchdb-secondbrain",
+      "group": "main",
+      "url": "http://couchdb:5984",
+      "database": "secondbrain",
+      "username": "obsidian",
+      "password": "<COUCHDB_PASSWORD>",
+      "passphrase": "<E2EE_PASSPHRASE>",
+      "obfuscatePassphrase": "<E2EE_PASSPHRASE>",
+      "baseDir": "",
+      "useRemoteTweaks": true
+    },
+    {
+      "type": "storage",
+      "name": "vault-mirror",
+      "group": "main",
+      "baseDir": "data/vault/"
+    }
+  ]
+}

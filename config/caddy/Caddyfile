@@ -1,0 +1,21 @@
+# Add these site blocks to your existing Caddyfile.
+# Caddy runs with `network_mode: host`, so it reverse-proxies to the 127.0.0.1
+# host ports the containers publish. Replace `home.arpa` with your own domain.
+#
+# `tls internal` uses Caddy's built-in CA. Install & trust its root certificate on
+# every client (see docs/02-installation.md, step 2.3). iOS *requires* HTTPS.
+
+couchdb.home.arpa {
+    tls internal
+    reverse_proxy 127.0.0.1:5984
+}
+
+cognee.home.arpa {
+    tls internal
+    reverse_proxy 127.0.0.1:8010
+}
+
+cognee-mcp.home.arpa {
+    tls internal
+    reverse_proxy 127.0.0.1:8011
+}

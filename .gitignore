@@ -1,0 +1,12 @@
+# Filled-in secrets — copy the .example files and keep the real ones out of git
+.env
+config/cognee/cognee.env
+config/livesync-bridge/dat/
+config/livesync-bridge/config.json
+
+# Runtime state / data
+livesync-bridge-src/
+livesync-bridge/data/
+ingest-state.txt
+*.pem
+*.crt

@@ -1,0 +1,12 @@
+{
+  "_comment": "Claude Desktop has no native HTTP MCP transport, so it uses the mcp-remote bridge. Copy the relevant part into your real claude_desktop_config.json. PIN the mcp-remote version (an unpinned npx cache-miss can silently pull a broken release). NODE_EXTRA_CA_CERTS must be an ABSOLUTE path to your Caddy root CA in PEM form — '~' is not expanded in JSON.",
+  "mcpServers": {
+    "cognee": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@0.1.36", "https://cognee-mcp.home.arpa/mcp"],
+      "env": {
+        "NODE_EXTRA_CA_CERTS": "/absolute/path/to/caddy-root.pem"
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+# Full stack: CouchDB + livesync-bridge (vault sync) and
+# cognee + pgvector + Ollama + cognee-mcp (knowledge graph).
+#
+# Prerequisites:
+#   - A `.env` file next to this compose file (see ../.env.example).
+#   - config/cognee/cognee.env      (see ../config/cognee/cognee.env.example)
+#   - config/couchdb/local.ini      (see ../config/couchdb/local.ini)
+#   - config/livesync-bridge/dat/config.json (see ../config/livesync-bridge/config.json.example)
+#   - A checkout of the livesync-bridge source at ./livesync-bridge-src (self-build required).
+#   - An existing Caddy reverse proxy (network_mode: host) — see ../config/caddy/Caddyfile.
+#
+# Paths below assume this file lives in ${STACK_DIR} (e.g. /srv/docker). Adjust as needed.
+
+services:
+  # ---------------------------------------------------------------------------
+  # Vault sync
+  # ---------------------------------------------------------------------------
+  couchdb:
+    image: couchdb:3
+    container_name: couchdb
+    restart: unless-stopped
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+      - ./config/couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini
+    networks: [couchdb-net]
+    ports:
+      - "127.0.0.1:5984:5984"
+
+  livesync-bridge:
+    build: ./livesync-bridge-src
+    container_name: livesync-bridge
+    restart: unless-stopped
+    volumes:
+      # Self-build mount targets are /app/dat and /app/data (NOT /livesync-bridge/...).
+      - ./config/livesync-bridge/dat:/app/dat
+      - ./livesync-bridge/data:/app/data
+    networks: [couchdb-net]
+    depends_on: [couchdb]
+
+  # ---------------------------------------------------------------------------
+  # Knowledge graph
+  # ---------------------------------------------------------------------------
+  cognee-postgres:
+    image: pgvector/pgvector:pg17
+    container_name: cognee-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cognee
+      POSTGRES_PASSWORD: ${COGNEE_DB_PASSWORD}
+      POSTGRES_DB: cognee_db
+    volumes:
+      - cognee_pg_data:/var/lib/postgresql/data
+    networks: [cognee-net]
+    # No ports mapping by default. For a borgmatic DB dump hook, expose locally:
+    # ports: ["127.0.0.1:5433:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cognee -d cognee_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama-cognee:
+    image: ollama/ollama:latest
+    container_name: ollama-cognee
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    networks: [cognee-net]
+
+  cognee:
+    image: cognee/cognee:main
+    container_name: cognee
+    restart: unless-stopped
+    env_file: [./config/cognee/cognee.env]
+    depends_on:
+      cognee-postgres: { condition: service_healthy }
+      ollama-cognee: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    volumes:
+      # CRITICAL: /app/cognee/..., NOT /app/... — wrong paths mean data lives
+      # ephemerally inside the container and is silently lost on recreate.
+      - cognee_system:/app/cognee/.cognee_system
+      - cognee_data:/app/cognee/.data_storage
+    networks: [cognee-net]
+    ports:
+      - "127.0.0.1:8010:8000"
+
+  cognee-mcp:
+    image: cognee/cognee-mcp:main
+    container_name: cognee-mcp
+    restart: unless-stopped
+    environment:
+      - TRANSPORT_MODE=http
+      - API_URL=http://cognee:8000        # API mode: no DB access, no volumes needed
+      - MCP_ALLOWED_HOSTS=cognee-mcp.home.arpa:*,127.0.0.1:*,localhost:*
+    depends_on:
+      cognee: { condition: service_healthy }
+    networks: [cognee-net]
+    ports:
+      - "127.0.0.1:8011:8000"
+
+networks:
+  couchdb-net: { driver: bridge }
+  cognee-net: { driver: bridge }
+
+volumes:
+  couchdb_data:
+  cognee_pg_data:
+  cognee_system:
+  cognee_data:
+  ollama_data:
