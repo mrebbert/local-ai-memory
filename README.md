@@ -1,4 +1,4 @@
-# local-ai-memory
+# Local SecondBrAIn
 
 A self-hosted **memory and knowledge graph for Claude**, built on
 [Cognee](https://github.com/topoteretes/cognee). Claude (Desktop, Code, or mobile via
