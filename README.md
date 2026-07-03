@@ -45,7 +45,6 @@ flowchart TB
     end
 
     LLM["LLM API<br>(entity extraction)"]
-    BACKUP["borgmatic → offsite"]
 
     MAC <-->|"LiveSync (continuous)"| CADDY
     PHONE <-->|"LiveSync"| CADDY
@@ -61,9 +60,6 @@ flowchart TB
     COG --> LLM
     COG --> PG
     COG --> KUZU
-    COUCH -.-> BACKUP
-    PG -.->|"pg_dump"| BACKUP
-    KUZU -.-> BACKUP
 ```
 
 In the diagram, the **`cognee-net` box is the core** — it works on its own. Everything on

@@ -10,12 +10,12 @@ Build the whole system on a single Docker host, from scratch.
 - Node.js on your desktop (for the Claude Desktop MCP bridge)
 
 **Order:** 1. Cognee stack → 2. CouchDB → 3. Obsidian/LiveSync → 4. livesync-bridge →
-5. Ingestion → 6. MCP clients → 7. Backup
+5. Ingestion → 6. MCP clients
 
 **Minimal setup (memory only):** if you just want persistent memory for Claude without
-Obsidian, do steps **1, 6, and 7** — start the Cognee stack, connect an MCP client, and
-back it up. Steps **2–5 are the optional Obsidian ingestion path**; skip them, or replace
-them with any other source that calls Cognee's `/add` + `/cognify` API (see step 5).
+Obsidian, do steps **1 and 6** — start the Cognee stack and connect an MCP client. Steps
+**2–5 are the optional Obsidian ingestion path**; skip them, or replace them with any
+other source that calls Cognee's `/add` + `/cognify` API (see step 5).
 
 All paths assume the stack lives in `${STACK_DIR}` (e.g. `/srv/docker`). Grab the config
 templates from [`config/`](../config/) and [`compose/`](../compose/), copy each `.example`
@@ -230,33 +230,3 @@ claude mcp add --transport http --scope user cognee https://cognee-mcp.home.arpa
 
 **Function test:** chat 1: "Remember with the cognee tool: test key X." → new chat: "What
 is my test key? Use cognee recall."
-
----
-
-## 7. Backup (borgmatic)
-
-Back up the bind-mounted config **and** the named volumes; dump databases rather than
-copying hot files.
-
-```yaml
-source_directories:
-    - /srv/docker
-    - /var/lib/docker/volumes        # named volumes live here, NOT under /srv/docker
-
-exclude_patterns:
-    - /var/lib/docker/volumes/docker_cognee_pg_data   # dumped separately, not as hot files
-    - /var/lib/docker/volumes/docker_ollama_data      # reproducible
-
-postgresql_databases:
-    - name: cognee_db
-      hostname: localhost
-      port: 5433        # requires "127.0.0.1:5433:5432" on cognee-postgres
-      username: cognee
-      password: <pw>
-      format: custom
-      options: --no-owner --no-privileges
-```
-
-`--no-owner --no-privileges`: restore assumes the DB users already exist (they come from
-Compose init). Acceptance: `borgmatic config validate` → `borgmatic create --dry-run
---verbosity 1` (runs the DB dumps for real!) → `borgmatic create --stats`.

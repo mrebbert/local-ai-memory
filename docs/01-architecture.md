@@ -46,7 +46,6 @@ flowchart TB
     end
 
     LLM["LLM API<br>(entity extraction)"]
-    BACKUP["borgmatic → offsite"]
 
     MAC <-->|"LiveSync (continuous)"| CADDY
     PHONE <-->|"LiveSync"| CADDY
@@ -62,9 +61,6 @@ flowchart TB
     COG --> LLM
     COG --> PG
     COG --> KUZU
-    COUCH -.-> BACKUP
-    PG -.->|"pg_dump"| BACKUP
-    KUZU -.-> BACKUP
 ```
 
 ## Components and their single responsibility

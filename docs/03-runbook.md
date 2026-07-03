@@ -98,10 +98,9 @@ dataset.
 
 ### Backup restore (short form)
 
-- **Volumes:** restore from the Borg archive into `/var/lib/docker/volumes/<name>/_data/`
+- **Volumes:** restore from your backup into `/var/lib/docker/volumes/<name>/_data/`
   (container stopped).
-- **Databases:** `borgmatic restore` (native hooks) — DB users must exist (Compose init
-  first).
+- **Databases:** restore the `cognee_db` dump — the DB user must exist first (Compose init).
 - **Cognee consistency:** the `cognee_pg_data` dump and `cognee_system` (Kuzu) must be
   from the same run (they reference each other). Emergency alternative: rebuild the graph
   from the vault entirely — you only lose the `remember` session memory.
