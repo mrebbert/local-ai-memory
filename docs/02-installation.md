@@ -202,6 +202,11 @@ curl -sf -X POST http://127.0.0.1:8010/api/v1/cognify \
 
 ## 6. MCP clients
 
+`cognee-mcp` is a standard MCP server reachable at `https://cognee-mcp.home.arpa/mcp`.
+**Any MCP-capable client** can connect — Claude is used as the example below, but the same
+endpoint works for other MCP clients/agents (point them at that URL; if the client speaks
+native HTTP MCP, no `mcp-remote` bridge is needed).
+
 ### Claude Desktop
 No native HTTP MCP → uses the `mcp-remote` bridge. See
 [`config/claude/claude_desktop_config.json.example`](../config/claude/claude_desktop_config.json.example).

@@ -25,7 +25,7 @@ flowchart TB
     subgraph devices["Your devices"]
         MAC["Desktop: Obsidian vault"]
         PHONE["Phone: Obsidian<br>(LAN / VPN)"]
-        CLAUDE["Claude Desktop / Code"]
+        CLAUDE["MCP client<br>(Claude Desktop / Code)"]
     end
 
     subgraph host["Docker host"]
@@ -107,7 +107,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant CD as Claude Desktop/Code
+    participant CD as MCP client (e.g. Claude)
     participant M as cognee-mcp
     participant G as cognee
     participant OL as Ollama

@@ -1,9 +1,14 @@
 # Local SecondBrAIn
 
-A self-hosted **memory and knowledge graph for Claude**, built on
-[Cognee](https://github.com/topoteretes/cognee). Claude (Desktop, Code, or mobile via
-MCP) can store facts and recall them across conversations (`remember` / `recall`), and
-query a semantic knowledge graph built from your own content.
+A self-hosted **memory and knowledge graph for LLM agents**, built on
+[Cognee](https://github.com/topoteretes/cognee) and exposed over the **Model Context
+Protocol (MCP)**. Any MCP-capable client can store facts and recall them across
+conversations (`remember` / `recall`) and query a semantic knowledge graph built from
+your own content.
+
+This guide uses **Claude** (Desktop, Code, mobile) as the worked example, but nothing here
+is Claude-specific: the memory layer is a standard MCP server, so any MCP client works —
+and the extraction LLM is swappable too (see below).
 
 Everything runs on hardware you control. The only external dependency is an LLM API
 (used purely for entity/relation extraction and answer phrasing); embeddings run locally.
@@ -27,7 +32,7 @@ flowchart TB
     subgraph devices["Your devices"]
         MAC["Desktop: Obsidian vault"]
         PHONE["Phone: Obsidian<br>(LAN / VPN)"]
-        CLAUDE["Claude Desktop / Code"]
+        CLAUDE["MCP client<br>(Claude Desktop / Code)"]
     end
 
     subgraph host["Docker host"]
@@ -74,9 +79,9 @@ Cognee's `/add` + `/cognify` API.
 
 **Core (always):**
 
-1. Claude connects to **cognee-mcp** and calls `remember` (persist a fact) or `recall`
-   (semantic search over the graph). This alone gives Claude persistent memory — no notes
-   required.
+1. An MCP client (**Claude** in this guide) connects to **cognee-mcp** and calls
+   `remember` (persist a fact) or `recall` (semantic search over the graph). This alone
+   gives the client persistent memory — no notes required.
 2. Anything sent to Cognee's API is chunked, run through the **LLM API** for entity &
    relation extraction, embedded locally with **Ollama**, and stored as vectors in
    **pgvector** and a graph in **Kuzu**.
