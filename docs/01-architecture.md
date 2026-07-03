@@ -147,6 +147,12 @@ sequenceDiagram
 3. **Embeddings local, LLM in the cloud:** the encoder runs fine on CPU; usable graph
    extraction needs model classes beyond local hardware. A small/cheap model (e.g. a
    Haiku-class model) is enough for extraction; swap it any time via `.env`.
+   *This is a hardware trade-off, not a hard dependency:* the extraction LLM can also run
+   locally (e.g. Ollama or any OpenAI-compatible endpoint) by pointing `LLM_PROVIDER` /
+   `LLM_MODEL` / `LLM_ENDPOINT` at it — given a GPU capable of a model strong enough for
+   reliable entity/relation extraction. Without that hardware, the cloud API is the
+   pragmatic choice and keeps the *only* thing leaving your network to the whitelisted
+   note text.
 4. **CouchDB + LiveSync instead of a consumer cloud sync:** you get server-side access
    for ingestion, your own backup chain, and no fragile third-party sync quirks.
 5. **Bridge as a format translator:** a direct CouchDB→Cognee path would mean

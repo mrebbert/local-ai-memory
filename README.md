@@ -7,6 +7,9 @@ query a semantic knowledge graph built from your own content.
 
 Everything runs on hardware you control. The only external dependency is an LLM API
 (used purely for entity/relation extraction and answer phrasing); embeddings run locally.
+That LLM call can be pointed at a **local model** too (Ollama or any OpenAI-compatible
+endpoint) given a GPU strong enough for reliable extraction — the cloud API is simply the
+pragmatic choice when that hardware isn't available.
 
 > **Obsidian is one way to feed this — not a requirement.**
 > The core is the Cognee stack (`cognee` + `pgvector` + `Ollama` + `cognee-mcp`). You can:
