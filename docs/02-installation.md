@@ -12,6 +12,11 @@ Build the whole system on a single Docker host, from scratch.
 **Order:** 1. Cognee stack → 2. CouchDB → 3. Obsidian/LiveSync → 4. livesync-bridge →
 5. Ingestion → 6. MCP clients → 7. Backup
 
+**Minimal setup (memory only):** if you just want persistent memory for Claude without
+Obsidian, do steps **1, 6, and 7** — start the Cognee stack, connect an MCP client, and
+back it up. Steps **2–5 are the optional Obsidian ingestion path**; skip them, or replace
+them with any other source that calls Cognee's `/add` + `/cognify` API (see step 5).
+
 All paths assume the stack lives in `${STACK_DIR}` (e.g. `/srv/docker`). Grab the config
 templates from [`config/`](../config/) and [`compose/`](../compose/), copy each `.example`
 to its real name, and fill in secrets.
@@ -181,6 +186,17 @@ Core principles (already implemented in the script):
 
 Dry check before the first run: run the script's `find` command manually and eyeball the
 file list for whitelist conformance.
+
+**Ingesting from other sources.** This script is just a convenient wrapper around Cognee's
+HTTP API. Any source can feed the graph the same way — the Obsidian pipeline is not special:
+
+```bash
+# Add one file (or repeat for many), then cognify once:
+curl -sf -X POST http://127.0.0.1:8010/api/v1/add \
+  -F "data=@/path/to/document.md" -F "datasetName=my-dataset"
+curl -sf -X POST http://127.0.0.1:8010/api/v1/cognify \
+  -H "Content-Type: application/json" -d '{"datasets": ["my-dataset"]}'
+```
 
 ---
 

@@ -1,9 +1,22 @@
 # Architecture
 
-This system turns a personal Obsidian vault into a queryable knowledge graph and a
-persistent memory for Claude, running entirely on self-hosted infrastructure. The only
-thing that leaves your network is note text sent to an LLM API for extraction (you
-control exactly which folders via a whitelist).
+This system gives Claude a **self-hosted knowledge graph and persistent memory**. The
+only thing that leaves your network is content sent to an LLM API for extraction (you
+control exactly what, via a whitelist on the ingestion side).
+
+## Two layers
+
+The system separates cleanly into a core engine and a swappable ingestion source:
+
+| Layer | Components | Role |
+|---|---|---|
+| **Core (always)** | `cognee`, `cognee-postgres` (pgvector), `ollama-cognee`, `cognee-mcp` | The knowledge graph + memory engine. Exposes `remember`/`recall`/`forget` to any MCP client and an HTTP API (`/add` + `/cognify`) for ingesting content. Fully usable on its own. |
+| **Ingestion (optional)** | Obsidian, `couchdb`, `livesync-bridge`, the mirror, `vault-ingest.sh` | One way to feed content in: keeps an Obsidian vault continuously synced and pushes whitelisted notes into the core. |
+
+**Obsidian is one ingestion path, not a dependency.** You can run only the core as
+conversation memory for Claude, feed it from any other source through the same HTTP API,
+or use the Obsidian pipeline documented here. The two layers talk *only* through Cognee's
+HTTP API — swapping or removing the ingestion layer changes nothing in the core.
 
 ## Overview
 

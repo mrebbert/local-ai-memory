@@ -1,12 +1,23 @@
 # local-ai-memory
 
-A self-hosted **"second brain"**: your Obsidian notes are continuously synced to a
-server, mirrored to plain files, and fed into a [Cognee](https://github.com/topoteretes/cognee)
-knowledge graph. Claude (Desktop, Code, or mobile via MCP) can then query that graph
-semantically — and use it as persistent conversation memory (`remember` / `recall`).
+A self-hosted **memory and knowledge graph for Claude**, built on
+[Cognee](https://github.com/topoteretes/cognee). Claude (Desktop, Code, or mobile via
+MCP) can store facts and recall them across conversations (`remember` / `recall`), and
+query a semantic knowledge graph built from your own content.
 
 Everything runs on hardware you control. The only external dependency is an LLM API
 (used purely for entity/relation extraction and answer phrasing); embeddings run locally.
+
+> **Obsidian is one way to feed this — not a requirement.**
+> The core is the Cognee stack (`cognee` + `pgvector` + `Ollama` + `cognee-mcp`). You can:
+> - use it as **pure conversation memory** for Claude, with no notes at all;
+> - **ingest any content** — files, exports, scripts' output — through Cognee's HTTP API
+>   (`/add` + `/cognify`) from any source;
+> - or wire up the **optional Obsidian pipeline** described here to keep a whole vault
+>   continuously in sync.
+>
+> This repo documents the Obsidian pipeline as a concrete, complete example — but treat
+> the sync half (CouchDB + livesync-bridge + mirror + `vault-ingest.sh`) as swappable.
 
 ```mermaid
 flowchart TB
@@ -55,23 +66,35 @@ flowchart TB
     KUZU -.-> BACKUP
 ```
 
+In the diagram, the **`cognee-net` box is the core** — it works on its own. Everything on
+the left (Obsidian, CouchDB, livesync-bridge, the mirror, `vault-ingest.sh`) is the
+**optional Obsidian ingestion path** and can be replaced by any other way of calling
+Cognee's `/add` + `/cognify` API.
+
 ## How it works, in one breath
 
-1. You edit notes in Obsidian. **Self-hosted LiveSync** pushes them (end-to-end
-   encrypted) into **CouchDB** within seconds.
-2. **livesync-bridge** watches CouchDB's changes feed, decrypts, and writes plain
-   `.md` files into a **mirror** directory on the host.
-3. **`vault-ingest.sh`** picks up new/changed whitelisted files (SHA-256 change
-   detection) and sends them to **Cognee** (`/add` + one `/cognify`).
-4. Cognee chunks each note, extracts entities & relations via the **LLM API**,
-   embeds them locally with **Ollama**, and stores vectors in **pgvector** and the
-   graph in **Kuzu**.
-5. Claude connects to **cognee-mcp** and calls `recall` (semantic search over the
-   graph) or `remember` (persist a fact).
+**Core (always):**
 
-Data flows **one way**: vault → graph. Cognee never writes back to your vault.
-Obsidian stays the single source of truth; the graph is reproducible at any time
-(cost: one LLM rebuild).
+1. Claude connects to **cognee-mcp** and calls `remember` (persist a fact) or `recall`
+   (semantic search over the graph). This alone gives Claude persistent memory — no notes
+   required.
+2. Anything sent to Cognee's API is chunked, run through the **LLM API** for entity &
+   relation extraction, embedded locally with **Ollama**, and stored as vectors in
+   **pgvector** and a graph in **Kuzu**.
+
+**Optional — Obsidian ingestion path:**
+
+3. You edit notes in Obsidian. **Self-hosted LiveSync** pushes them (end-to-end
+   encrypted) into **CouchDB** within seconds.
+4. **livesync-bridge** watches CouchDB's changes feed, decrypts, and writes plain
+   `.md` files into a **mirror** directory on the host.
+5. **`vault-ingest.sh`** picks up new/changed whitelisted files (SHA-256 change
+   detection) and sends them to Cognee (`/add` + one `/cognify`) — the same API any other
+   source would use.
+
+Through this path data flows **one way**: vault → graph. Cognee never writes back to your
+vault; Obsidian stays the single source of truth, and the graph is reproducible at any
+time (cost: one LLM rebuild).
 
 ## Repository layout
 
