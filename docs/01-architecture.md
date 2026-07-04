@@ -126,10 +126,19 @@ sequenceDiagram
 
 ## Security model
 
+> **This is a single-user, LAN-only installation.** It is designed for one person on a
+> trusted home network — not multi-tenant use and not internet exposure. Everything below
+> assumes that scope; harden accordingly before changing it.
+
 - **Cognee runs in single-user mode** (`ENABLE_BACKEND_ACCESS_CONTROL=false`,
-  `REQUIRE_AUTHENTICATION=false`). No tokens. The security boundary is the network:
-  isolated Docker networks, databases with no host port, services bound to
-  `127.0.0.1` only, and LAN access exclusively through Caddy.
+  `REQUIRE_AUTHENTICATION=false`). No tokens. Its built-in authentication is turned off
+  **on purpose**: in the open-source / on-prem build it did not work reliably here (or the
+  correct configuration hasn't been found yet), so the design deliberately does not rely on
+  it. Instead, the **security boundary is the network**: isolated Docker networks, databases
+  with no host port, services bound to `127.0.0.1` only, and LAN access exclusively through
+  Caddy. If you ever expose this beyond a trusted LAN, you must add a real auth layer in
+  front (e.g. at the reverse proxy) — do not simply flip the Cognee auth flags and assume
+  it's covered.
 - **Vault transport:** HTTPS via Caddy's internal CA. The root certificate must be
   installed and trusted on every client (iOS *requires* HTTPS — plain HTTP is blocked).
 - **Vault at rest:** end-to-end encrypted inside CouchDB (passphrase in your password

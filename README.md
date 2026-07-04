@@ -16,6 +16,16 @@ That LLM call can be pointed at a **local model** too (Ollama or any OpenAI-comp
 endpoint) given a GPU strong enough for reliable extraction — the cloud API is simply the
 pragmatic choice when that hardware isn't available.
 
+> ⚠️ **Scope: single-user, LAN-only.**
+> This is a personal, self-hosted setup for one user on a trusted home network. Cognee's
+> built-in authentication is deliberately turned **off** — in the open-source / on-prem
+> build it did not work reliably for me (or I haven't found the right way to configure it),
+> so the design does not depend on it. The security boundary is the **network**, not
+> application auth: isolated Docker networks, databases with no host port, services bound
+> to `127.0.0.1`, and LAN access only through a reverse proxy. **Do not expose this to the
+> internet or share it between users** as-is. See
+> [Security model](docs/01-architecture.md#security-model).
+
 > **Obsidian is one way to feed this — not a requirement.**
 > The core is the Cognee stack (`cognee` + `pgvector` + `Ollama` + `cognee-mcp`). You can:
 > - use it as **pure conversation memory** for Claude, with no notes at all;
